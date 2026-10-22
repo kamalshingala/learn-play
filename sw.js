@@ -1,5 +1,5 @@
 // Offline cache: serves cached files instantly and refreshes them in the background.
-const CACHE = 'learn-play-v1';
+const CACHE = 'learn-play-v2';
 const ASSETS = ['./', 'index.html', 'manifest.json', 'icon-180.png', 'icon-512.png'];
 
 self.addEventListener('install', e => {
