@@ -1,0 +1,482 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Learn & Play">
+<meta name="theme-color" content="#ffd84d">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-180.png">
+<title>Learn &amp; Play</title>
+<style>
+  :root{--sun:#ffd84d;--coral:#ff6b6b;--sky:#4dabf7;--mint:#51cf66;--ink:#3b2f2f;--cream:#fff8e1}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;user-select:none;-webkit-user-select:none}
+  html,body{margin:0;height:100%;overflow:hidden;touch-action:manipulation}
+  body{font-family:"ui-rounded","Arial Rounded MT Bold","Helvetica Neue",Arial,sans-serif;color:var(--ink);
+    background:linear-gradient(180deg,#bde7ff 0%,#fff8e1 70%);
+    padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+  #app{height:100%;display:flex;flex-direction:column}
+  #top{display:flex;align-items:center;gap:12px;padding:10px 16px;min-height:84px}
+  #homeBtn{font-size:30px;border:none;background:#fff;border-radius:50%;width:56px;height:56px;box-shadow:0 3px 0 #0002}
+  #mascot{font-size:56px;line-height:1}
+  #bubble{flex:1;background:#fff;border-radius:20px;padding:10px 16px;font-size:22px;box-shadow:0 3px 0 #0002;position:relative}
+  #bubble:before{content:"";position:absolute;left:-10px;top:50%;margin-top:-8px;border:8px solid transparent;border-right-color:#fff;border-left:0}
+  #stats{font-size:22px;background:#fff;border-radius:16px;padding:8px 12px;box-shadow:0 3px 0 #0002;white-space:nowrap}
+  #screen{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:8px 16px 20px;overflow:auto}
+  .prompt{font-size:30px;text-align:center;font-weight:700}
+  .letters{font-size:110px;font-weight:900;color:var(--coral);line-height:1}
+  .pic{font-size:90px;line-height:1}.pic.huge{font-size:130px}
+  .stack{display:flex;flex-direction:column;align-items:center;gap:14px}
+  .bigbtn{font:inherit;font-size:38px;font-weight:800;color:#fff;background:var(--coral);border:none;border-radius:32px;padding:22px 48px;box-shadow:0 8px 0 #c94a4a}
+  .bigbtn:active,.mini:active,.opt:active,.tile:active{transform:translateY(4px);box-shadow:none}
+  .row{display:flex;gap:16px;flex-wrap:wrap;justify-content:center}
+  .mini{font:inherit;font-size:44px;background:#fff;border:none;border-radius:24px;padding:14px 22px;box-shadow:0 6px 0 #0002;display:flex;flex-direction:column;align-items:center;min-width:130px}
+  .mini small{font-size:20px;margin-top:4px}
+  .round{font-size:34px;border:none;background:var(--sky);color:#fff;border-radius:50%;width:70px;height:70px;box-shadow:0 5px 0 #2f84c7}
+  .opts{display:flex;gap:18px;flex-wrap:wrap;justify-content:center}
+  .opt{font:inherit;background:#fff;border:4px solid #fff;border-radius:28px;padding:14px 22px;box-shadow:0 6px 0 #0002;display:flex;flex-direction:column;align-items:center;min-width:150px}
+  .opt span{font-size:80px;line-height:1.1}.opt small{font-size:24px}
+  .opt.num span{font-size:70px;font-weight:800}
+  .opt.right{border-color:var(--mint);background:#e6fcf0}
+  #tbox{position:relative;display:flex;justify-content:center;width:100%}
+  #tbox canvas{background:#fff;border-radius:28px;box-shadow:0 6px 0 #0002;touch-action:none;max-width:92%;max-height:52vh;width:auto;height:auto}
+  .skip{position:absolute;right:6%;bottom:8px;font-size:30px;border:none;background:var(--mint);color:#fff;border-radius:50%;width:64px;height:64px}
+  #objs{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;max-width:900px}
+  .obj{font:inherit;border:none;background:transparent;position:relative;line-height:1.05;padding:2px}
+  .obj i{position:absolute;right:-2px;top:-2px;font-style:normal;font-size:22px;font-weight:800;background:var(--mint);color:#fff;border-radius:50%;min-width:30px;height:30px;display:none;align-items:center;justify-content:center}
+  .obj.done{transform:scale(.88);opacity:.85}.obj.done i{display:flex}
+  #slots{display:flex;gap:12px}
+  .slot{width:92px;height:110px;background:#fff;border:4px dashed #bbb;border-radius:20px;font-size:76px;font-weight:800;display:flex;align-items:center;justify-content:center;color:var(--coral)}
+  .slot.filled{border:4px solid var(--mint);background:#e6fcf0}
+  #tiles{display:flex;gap:14px;flex-wrap:wrap;justify-content:center}
+  .tile{font:inherit;font-size:64px;font-weight:800;width:96px;height:106px;border:none;border-radius:22px;background:var(--sun);box-shadow:0 6px 0 #c9a400}
+  .tile.used{opacity:.25;box-shadow:none}
+  .bigword{font-size:130px;font-weight:900;color:var(--coral);letter-spacing:6px}
+  .stickers{display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:10px;width:100%;max-width:800px;font-size:64px;text-align:center}
+  #gear{position:fixed;right:8px;bottom:8px;font-size:22px;opacity:.35;background:none;border:none}
+  #confetti{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:9}
+  #confetti span{position:absolute;top:-70px;animation:fall linear forwards}
+  @keyframes fall{to{transform:translateY(115vh) rotate(420deg)}}
+  .shake{animation:shake .4s}
+  @keyframes shake{25%{transform:translateX(-12px)}75%{transform:translateX(12px)}}
+  .bounce{animation:bounce 1.6s infinite}
+  @keyframes bounce{50%{transform:translateY(-8px)}}
+</style>
+</head>
+<body>
+<div id="app">
+  <header id="top">
+    <button id="homeBtn" aria-label="Home">🏠</button>
+    <div id="mascot">🐻</div>
+    <div id="bubble">Hi!</div>
+    <div id="stats"></div>
+  </header>
+  <main id="screen"></main>
+  <div id="confetti"></div>
+</div>
+
+<script>
+/* ============ DATA ============ */
+// Letters follow a Jolly-Phonics-style order (s a t i p n first) so early words are possible.
+const LETTERS = [
+  {l:'s', say:'sss', word:'snake',   pic:'🐍'},
+  {l:'a', say:'ah',  word:'apple',   pic:'🍎'},
+  {l:'t', say:'tuh', word:'tiger',   pic:'🐯'},
+  {l:'i', say:'ih',  word:'insect',  pic:'🐛'},
+  {l:'p', say:'puh', word:'penguin', pic:'🐧'},
+  {l:'n', say:'nnn', word:'nose',    pic:'👃'},
+  {l:'c', say:'kuh', word:'cat',     pic:'🐱'},
+  {l:'k', say:'kuh', word:'kite',    pic:'🪁'},
+  {l:'e', say:'eh',  word:'egg',     pic:'🥚'},
+  {l:'h', say:'huh', word:'hat',     pic:'🎩'},
+  {l:'r', say:'rrr', word:'rainbow', pic:'🌈'},
+  {l:'m', say:'mmm', word:'moon',    pic:'🌙'},
+];
+const WORDS = [
+  {w:'sit',pic:'🪑'},{w:'tap',pic:'🚰'},{w:'pin',pic:'📌'},{w:'pan',pic:'🍳'},{w:'nap',pic:'😴'},
+  {w:'tin',pic:'🥫'},{w:'ant',pic:'🐜'},{w:'cat',pic:'🐱'},{w:'cap',pic:'🧢'},{w:'hat',pic:'🎩'},
+  {w:'rat',pic:'🐀'},{w:'map',pic:'🗺️'},{w:'pen',pic:'🖊️'},{w:'hen',pic:'🐔'},{w:'ham',pic:'🍖'},
+  {w:'man',pic:'👨'},{w:'ten',pic:'🔟'},{w:'net',pic:'🥅'},{w:'ram',pic:'🐏'}
+];
+const OBJECTS = ['🍎','⭐','🐟','🎈','🚗','🐥','🍪','🦋','🍓'];
+const STICKERS = ['🦄','🐶','🐱','🐼','🦊','🐸','🐙','🦋','🐢','🦁','🐬','🦖','🐝','🐞','🚀','🌈','🐧','🦉','🐳','🦒','🐘','🦜','🐠','🚒'];
+const CHEERS = ['Great job!','You did it!','Amazing!','Super star!','Wow, well done!'];
+
+/* ============ STATE ============ */
+const KEY = 'learnplay.v1';
+let S = {unlocked:4, countMax:3, rowL:0, rowC:0, streak:0, lastDay:'', stickers:[]};
+try { Object.assign(S, JSON.parse(localStorage.getItem(KEY) || '{}')); } catch(e) {}
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch(e) {} };
+
+/* ============ HELPERS ============ */
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+const rand = a => a[Math.floor(Math.random() * a.length)];
+const shuffle = a => a.map(x => [Math.random(), x]).sort((p, q) => p[0] - q[0]).map(x => x[1]);
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const scr = $('#screen');
+const show = html => { scr.innerHTML = html; };
+const bubble = t => { $('#bubble').textContent = t; };
+const stats = () => { $('#stats').textContent = `🔥 ${S.streak}   ⭐ ${S.stickers.length}`; };
+const today = () => new Date().toLocaleDateString('en-CA');
+
+/* ============ SOUND ============ */
+let voice = null;
+function pickVoice(){
+  if (!('speechSynthesis' in window)) return;
+  const vs = speechSynthesis.getVoices();
+  voice = vs.find(v => v.lang === 'en-AU') || vs.find(v => v.lang.startsWith('en')) || null;
+}
+if ('speechSynthesis' in window) { speechSynthesis.onvoiceschanged = pickVoice; pickVoice(); }
+
+function speak(text, rate = 0.85){
+  return new Promise(res => {
+    try {
+      speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      if (voice) u.voice = voice;
+      u.lang = voice ? voice.lang : 'en-AU';
+      u.rate = rate; u.pitch = 1.1;
+      u.onend = res; u.onerror = res;
+      speechSynthesis.speak(u);
+      setTimeout(res, 5000);
+    } catch(e) { res(); }
+  });
+}
+
+// Plays your own recording audio/<letter>.mp3 if present, otherwise falls back to text-to-speech.
+const audioOK = {};
+function playSound(L){
+  return new Promise(res => {
+    let finished = false;
+    const fallback = () => { if (finished) return; finished = true; audioOK[L.l] = false; speak(L.say, 0.6).then(res); };
+    if (audioOK[L.l] === false) { fallback(); return; }
+    const a = new Audio(`audio/${L.l}.mp3`);
+    a.onended = () => { if (!finished) { finished = true; res(); } };
+    a.onerror = fallback;
+    a.play().then(() => { audioOK[L.l] = true; }).catch(fallback);
+  });
+}
+
+let ac;
+function beep(seq){
+  try {
+    ac = ac || new (window.AudioContext || window.webkitAudioContext)();
+    let t = ac.currentTime;
+    seq.forEach(([f, d]) => {
+      const o = ac.createOscillator(), g = ac.createGain();
+      o.type = 'sine'; o.frequency.value = f;
+      g.gain.setValueAtTime(0.15, t); g.gain.exponentialRampToValueAtTime(0.001, t + d);
+      o.connect(g); g.connect(ac.destination); o.start(t); o.stop(t + d); t += d * 0.9;
+    });
+  } catch(e) {}
+}
+const good = () => beep([[523,.12],[659,.12],[784,.22]]);
+const bad  = () => beep([[220,.22]]);
+const pop  = () => beep([[880,.07]]);
+
+function confetti(n = 30){
+  const c = $('#confetti');
+  for (let i = 0; i < n; i++) {
+    const e = document.createElement('span');
+    e.textContent = rand(['🎉','⭐','✨','🎈','💛','🌟']);
+    e.style.left = Math.random() * 100 + 'vw';
+    e.style.animationDuration = (1.5 + Math.random() * 1.5) + 's';
+    e.style.fontSize = (24 + Math.random() * 30) + 'px';
+    c.appendChild(e); setTimeout(() => e.remove(), 3300);
+  }
+}
+async function cheer(){ confetti(20); bubble(rand(CHEERS)); await sleep(900); }
+
+/* ============ INTERACTION PRIMITIVES ============ */
+function waitClick(els){
+  return new Promise(res => {
+    const hs = els.map(el => { const h = () => { hs.forEach(([e, f]) => e.removeEventListener('click', f)); res(el); }; el.addEventListener('click', h); return [el, h]; });
+  });
+}
+// Keeps asking until the correct element is tapped. Returns true if right on the first try.
+async function ask(els, correct){
+  let wrong = 0;
+  for (;;) {
+    const el = await waitClick(els);
+    if (el === correct) { el.classList.add('right'); good(); await sleep(700); return wrong === 0; }
+    wrong++; bad(); el.classList.add('shake'); setTimeout(() => el.classList.remove('shake'), 450);
+  }
+}
+
+// Finger-tracing canvas. Resolves when ~70% of the ghost letter has been covered.
+function traceCanvas(box, text, W, H, brush = 34){
+  return new Promise(res => {
+    box.innerHTML = '';
+    const c = document.createElement('canvas'); c.width = W; c.height = H; box.appendChild(c);
+    const ctx = c.getContext('2d');
+    const font = '"Arial Rounded MT Bold","Helvetica Neue",Arial,sans-serif';
+    ctx.font = `bold 100px ${font}`;
+    const m = ctx.measureText(text);
+    const h = (m.actualBoundingBoxAscent + m.actualBoundingBoxDescent) || 70, w = m.width || 60;
+    const size = Math.floor(100 * Math.min((H * 0.7) / h, (W * 0.8) / w));
+    ctx.font = `bold ${size}px ${font}`;
+    const m2 = ctx.measureText(text);
+    ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
+    const x = W / 2, y = H / 2 + (m2.actualBoundingBoxAscent - m2.actualBoundingBoxDescent) / 2;
+
+    // Hit-test points from an offscreen mask of the glyph
+    const mask = document.createElement('canvas'); mask.width = W; mask.height = H;
+    const mc = mask.getContext('2d'); mc.font = ctx.font; mc.textAlign = 'center'; mc.fillText(text, x, y);
+    const d = mc.getImageData(0, 0, W, H).data, pts = [], step = Math.max(10, Math.round(brush * 0.45));
+    for (let py = 0; py < H; py += step) for (let px = 0; px < W; px += step) if (d[(py * W + px) * 4 + 3] > 128) pts.push({x: px, y: py, hit: false});
+
+    ctx.fillStyle = '#ffe9a8'; ctx.fillText(text, x, y);
+    ctx.lineWidth = 6; ctx.setLineDash([14, 12]); ctx.strokeStyle = '#e0a100'; ctx.strokeText(text, x, y); ctx.setLineDash([]);
+    ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.lineWidth = brush; ctx.strokeStyle = '#ff6b6b';
+
+    let last = null, done = false, hits = 0;
+    const pos = e => { const r = c.getBoundingClientRect(); return {x: (e.clientX - r.left) * W / r.width, y: (e.clientY - r.top) * H / r.height}; };
+    const mark = p => { const R = brush * 0.9; for (const q of pts) if (!q.hit && (q.x - p.x) ** 2 + (q.y - p.y) ** 2 < R * R) { q.hit = true; hits++; } };
+    const check = () => { if (!done && pts.length && hits / pts.length >= 0.7) { done = true; good(); setTimeout(res, 700); } };
+
+    c.addEventListener('pointerdown', e => {
+      c.setPointerCapture(e.pointerId); last = pos(e);
+      ctx.beginPath(); ctx.moveTo(last.x, last.y); ctx.lineTo(last.x + 0.1, last.y); ctx.stroke(); mark(last); e.preventDefault();
+    });
+    c.addEventListener('pointermove', e => {
+      if (!last) return;
+      const p = pos(e);
+      ctx.beginPath(); ctx.moveTo(last.x, last.y); ctx.lineTo(p.x, p.y); ctx.stroke();
+      const n = Math.ceil(Math.hypot(p.x - last.x, p.y - last.y) / 8);
+      for (let i = 1; i <= n; i++) mark({x: last.x + (p.x - last.x) * i / n, y: last.y + (p.y - last.y) * i / n});
+      last = p; check(); e.preventDefault();
+    });
+    ['pointerup', 'pointercancel'].forEach(t => c.addEventListener(t, () => { last = null; }));
+    setTimeout(() => {   // gentle escape hatch if a child gets stuck
+      if (done) return;
+      const b = document.createElement('button'); b.className = 'skip'; b.textContent = '➡';
+      b.onclick = () => { done = true; res(); }; box.appendChild(b);
+    }, 12000);
+  });
+}
+
+/* ============ ACTIVITIES ============ */
+async function doSound(){
+  const pool = LETTERS.slice(0, S.unlocked);
+  const L = Math.random() < 0.5 ? pool[pool.length - 1] : rand(pool);
+
+  bubble('Listen carefully!');
+  show(`<div class="stack"><div class="letters">${L.l.toUpperCase()}${L.l}</div><div class="pic huge">${L.pic}</div><div class="prompt">${L.l} is for ${L.word}</div></div>`);
+  await sleep(300); await playSound(L); await sleep(200); await speak(`${L.l} is for ${L.word}`);
+
+  bubble('Trace it with your finger!');
+  show(`<div class="prompt">Trace the letter</div><div id="tbox"></div><button id="replay" class="round">🔊</button>`);
+  $('#replay').onclick = () => playSound(L);
+  playSound(L);
+  await traceCanvas($('#tbox'), L.l, 600, 600, 34);
+
+  bubble('Which one starts with that sound?');
+  const opts = shuffle([L, ...shuffle(pool.filter(x => x.say !== L.say)).slice(0, 2)]);
+  show(`<div class="prompt">Which one starts with this sound?</div><button id="replay" class="round">🔊</button>
+        <div class="opts">${opts.map(o => `<button class="opt"><span>${o.pic}</span><small>${o.word}</small></button>`).join('')}</div>`);
+  $('#replay').onclick = () => playSound(L);
+  await playSound(L);
+  const els = $$('.opt');
+  const first = await ask(els, els[opts.indexOf(L)]);
+
+  S.rowL = first ? S.rowL + 1 : 0;
+  if (S.rowL >= 2 && S.unlocked < LETTERS.length) {
+    S.unlocked++; S.rowL = 0; save();
+    const N = LETTERS[S.unlocked - 1];
+    bubble('A new letter!'); confetti(60);
+    show(`<div class="prompt">New letter unlocked!</div><div class="letters bounce">${N.l.toUpperCase()}${N.l}</div><div class="pic huge">${N.pic}</div>`);
+    await playSound(N); await sleep(1200);
+  } else { save(); await cheer(); }
+}
+
+async function doCount(){
+  const max = S.countMax;
+  const n = Math.random() < 0.6 ? max : 1 + Math.floor(Math.random() * max);
+  const em = rand(OBJECTS);
+  const fs = n <= 6 ? 96 : n <= 12 ? 72 : 56;
+
+  bubble("Let's count!");
+  show(`<div class="prompt" id="p">Tap each one and count!</div>
+        <div id="objs" style="font-size:${fs}px">${Array.from({length: n}, () => `<button class="obj">${em}<i></i></button>`).join('')}</div>`);
+  speak('Tap each one and count!');
+  await new Promise(res => {
+    let c = 0;
+    $$('.obj').forEach(b => b.onclick = () => {
+      if (b.classList.contains('done')) return;
+      b.classList.add('done'); c++; b.querySelector('i').textContent = c; pop(); speak(String(c), 0.9);
+      if (c === n) setTimeout(res, 1000);
+    });
+  });
+
+  const nums = new Set([n]);
+  while (nums.size < 3) nums.add(1 + Math.floor(Math.random() * (Math.max(max, n) + 2)));
+  const opts = shuffle([...nums]);
+  $('#p').textContent = 'How many are there?';
+  $('#objs').insertAdjacentHTML('afterend', `<div class="opts">${opts.map(o => `<button class="opt num"><span>${o}</span></button>`).join('')}</div>`);
+  speak('How many are there?');
+  const els = $$('.opt');
+  const first = await ask(els, els[opts.indexOf(n)]);
+  S.rowC = first ? S.rowC + 1 : 0;
+  let levelUp = false;
+  if (S.rowC >= 2 && S.countMax < 20) { S.countMax++; S.rowC = 0; levelUp = true; }
+  save();
+
+  bubble('Now write the number!');
+  show(`<div class="prompt">Trace the number</div><div id="tbox"></div>`);
+  speak(String(n));
+  await (n >= 10 ? traceCanvas($('#tbox'), String(n), 900, 500, 34) : traceCanvas($('#tbox'), String(n), 600, 600, 34));
+  if (levelUp) { bubble('Bigger numbers next time!'); confetti(50); await sleep(1200); } else await cheer();
+}
+
+async function buildWord(W, pool){
+  bubble("Let's spell it!");
+  const extra = shuffle(pool.filter(L => !W.w.includes(L.l))).slice(0, 2).map(L => L.l);
+  const tiles = shuffle([...W.w, ...extra]);
+  show(`<div class="pic huge">${W.pic}</div>
+        <div id="slots">${[...W.w].map(() => '<div class="slot"></div>').join('')}</div>
+        <div id="tiles">${tiles.map(t => `<button class="tile" data-l="${t}">${t}</button>`).join('')}</div>`);
+  speak(`Let's spell ${W.w}`);
+  const slots = $$('.slot');
+  await new Promise(res => {
+    let i = 0;
+    $$('.tile').forEach(t => t.onclick = () => {
+      if (t.classList.contains('used')) return;
+      if (t.dataset.l === W.w[i]) {
+        t.classList.add('used'); slots[i].textContent = t.dataset.l; slots[i].classList.add('filled'); pop();
+        playSound(LETTERS.find(x => x.l === t.dataset.l)); i++;
+        if (i === W.w.length) setTimeout(res, 700);
+      } else { bad(); t.classList.add('shake'); setTimeout(() => t.classList.remove('shake'), 450); }
+    });
+  });
+  good(); confetti(30);
+  await speak(`${[...W.w].join(', ')}. ${W.w}!`, 0.7);
+
+  bubble('Now write the word!');
+  show(`<div class="prompt">Trace the word <b>${W.w}</b></div><div id="tbox"></div>`);
+  await traceCanvas($('#tbox'), W.w, 1000, 420, 30);
+}
+
+async function readWord(W, have){
+  bubble('Can you read it?');
+  const opts = shuffle([W, ...shuffle(have.filter(x => x.w !== W.w)).slice(0, 2)]);
+  show(`<div class="prompt">Read the word, then pick the picture</div>
+        <div class="bigword">${W.w}</div><button id="say" class="round">🔊</button>
+        <div class="opts">${opts.map(o => `<button class="opt"><span>${o.pic}</span></button>`).join('')}</div>`);
+  $('#say').onclick = () => speak(W.w);
+  const els = $$('.opt');
+  await ask(els, els[opts.indexOf(W)]);
+  await speak(`${W.w}!`);
+}
+
+async function firstLetter(pool){
+  const L = Math.random() < 0.5 ? pool[pool.length - 1] : rand(pool);
+  bubble('What does it start with?');
+  const opts = shuffle([L, ...shuffle(pool.filter(x => x.say !== L.say)).slice(0, 2)]);
+  show(`<div class="pic huge">${L.pic}</div><div class="prompt">${L.word}</div>
+        <div class="prompt">Which letter does it start with?</div>
+        <div class="opts">${opts.map(o => `<button class="opt num"><span>${o.l}</span></button>`).join('')}</div>`);
+  speak(`What does ${L.word} start with?`);
+  const els = $$('.opt');
+  await ask(els, els[opts.indexOf(L)]);
+  await playSound(L);
+}
+
+async function doWord(){
+  const pool = LETTERS.slice(0, S.unlocked);
+  const have = WORDS.filter(x => [...x.w].every(ch => pool.some(L => L.l === ch)));
+  if (have.length < 3) await firstLetter(pool);        // not enough letters for words yet
+  else {
+    const W = rand(have);
+    if (Math.random() < 0.5) await buildWord(W, pool); else await readWord(W, have);
+  }
+  await cheer();
+}
+
+/* ============ SCREENS ============ */
+async function daily(){
+  $('#homeBtn').style.visibility = 'visible';
+  await doSound(); await doSound();
+  await doCount(); await doCount();
+  await doWord();  await doWord();
+  finishDaily();
+}
+
+function finishDaily(){
+  const t = today(), first = S.lastDay !== t;
+  if (first) {
+    const y = new Date(Date.now() - 864e5).toLocaleDateString('en-CA');
+    S.streak = S.lastDay === y ? S.streak + 1 : 1; S.lastDay = t;
+  }
+  const st = STICKERS[S.stickers.length % STICKERS.length];
+  S.stickers.push(st); save(); stats();
+  confetti(90); good(); bubble('Mission complete!');
+  show(`<div class="prompt">Mission complete! 🎉</div><div class="pic huge bounce">${st}</div>
+        <div class="prompt">New sticker!${first ? `  🔥 ${S.streak} day streak` : ''}</div>
+        <button id="done" class="bigbtn">Yay!</button>`);
+  speak('Mission complete! You earned a new sticker!');
+  $('#done').onclick = () => location.reload();
+}
+
+function stickerBook(){
+  $('#homeBtn').style.visibility = 'visible';
+  bubble('My stickers!');
+  show(`<div class="prompt">My sticker book</div>
+        <div class="stickers">${S.stickers.length ? S.stickers.map(s => `<div>${s}</div>`).join('') : '<div style="grid-column:1/-1;font-size:28px">Finish today\'s mission to win your first sticker!</div>'}</div>`);
+}
+
+function parent(){
+  $('#homeBtn').style.visibility = 'visible';
+  bubble('Grown-ups corner');
+  show(`<div class="stack"><div class="prompt">Grown-ups</div>
+        <div style="font-size:22px">Letters unlocked: ${S.unlocked}/${LETTERS.length} · Counting up to ${S.countMax}</div>
+        <div class="row">
+          <button class="mini" id="pL">＋<small>Letter</small></button>
+          <button class="mini" id="pLm">－<small>Letter</small></button>
+          <button class="mini" id="pC">＋<small>Count</small></button>
+          <button class="mini" id="pR">🗑<small>Reset</small></button>
+        </div></div>`);
+  $('#pL').onclick  = () => { S.unlocked = Math.min(LETTERS.length, S.unlocked + 1); save(); parent(); };
+  $('#pLm').onclick = () => { S.unlocked = Math.max(4, S.unlocked - 1); save(); parent(); };
+  $('#pC').onclick  = () => { S.countMax = Math.min(20, S.countMax + 1); save(); parent(); };
+  $('#pR').onclick  = () => { if (confirm('Reset all progress?')) { localStorage.removeItem(KEY); location.reload(); } };
+}
+
+async function practice(fn){
+  $('#homeBtn').style.visibility = 'visible';
+  for (;;) await fn();   // the 🏠 button reloads the page, which ends the loop
+}
+
+function home(){
+  $('#homeBtn').style.visibility = 'hidden';
+  stats();
+  const played = S.lastDay === today();
+  bubble(played ? "You finished today's mission! Play more?" : 'Hi! Ready to play?');
+  show(`<button id="mix" class="bigbtn bounce">▶ ${played ? 'Play again' : "Today's mission"}</button>
+        <div class="row">
+          <button class="mini" id="bS">🔤<small>Sounds</small></button>
+          <button class="mini" id="bC">🔢<small>Counting</small></button>
+          <button class="mini" id="bW">📖<small>Words</small></button>
+          <button class="mini" id="bT">🏆<small>Stickers</small></button>
+        </div>
+        <button id="gear" aria-label="Grown-ups (hold)">⚙️</button>`);
+  $('#mix').onclick = daily;
+  $('#bS').onclick = () => practice(doSound);
+  $('#bC').onclick = () => practice(doCount);
+  $('#bW').onclick = () => practice(doWord);
+  $('#bT').onclick = stickerBook;
+  let timer;                                   // hold the gear for 1.2s to open grown-ups corner
+  const g = $('#gear');
+  g.onpointerdown = () => { timer = setTimeout(parent, 1200); };
+  ['onpointerup', 'onpointerleave', 'onpointercancel'].forEach(ev => g[ev] = () => clearTimeout(timer));
+}
+
+$('#homeBtn').onclick = () => location.reload();
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+home();
+</script>
+</body>
+</html>
