@@ -26,6 +26,7 @@
   #bubble:before{content:"";position:absolute;left:-10px;top:50%;margin-top:-8px;border:8px solid transparent;border-right-color:#fff;border-left:0}
   #stats{font-size:22px;background:#fff;border-radius:16px;padding:8px 12px;box-shadow:0 3px 0 #0002;white-space:nowrap}
   #screen{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:8px 16px 20px;overflow:auto}
+  #screen.top{justify-content:flex-start}
   .prompt{font-size:30px;text-align:center;font-weight:700}
   .letters{font-size:110px;font-weight:900;color:var(--coral);line-height:1}
   .pic{font-size:90px;line-height:1}.pic.huge{font-size:130px}
@@ -35,7 +36,7 @@
   .row{display:flex;gap:16px;flex-wrap:wrap;justify-content:center}
   .mini{font:inherit;font-size:44px;background:#fff;border:none;border-radius:24px;padding:14px 22px;box-shadow:0 6px 0 #0002;display:flex;flex-direction:column;align-items:center;min-width:130px}
   .mini small{font-size:20px;margin-top:4px}
-  .round{font-size:34px;border:none;background:var(--sky);color:#fff;border-radius:50%;width:70px;height:70px;box-shadow:0 5px 0 #2f84c7}
+  .round{font-size:34px;border:none;background:var(--sky);color:#fff;border-radius:50%;width:70px;height:70px;box-shadow:0 5px 0 #2f84c7;flex:none}
   .opts{display:flex;gap:18px;flex-wrap:wrap;justify-content:center}
   .opt{font:inherit;background:#fff;border:4px solid #fff;border-radius:28px;padding:14px 22px;box-shadow:0 6px 0 #0002;display:flex;flex-direction:column;align-items:center;min-width:150px}
   .opt span{font-size:80px;line-height:1.1}.opt small{font-size:24px}
@@ -64,6 +65,24 @@
   @keyframes shake{25%{transform:translateX(-12px)}75%{transform:translateX(12px)}}
   .bounce{animation:bounce 1.6s infinite}
   @keyframes bounce{50%{transform:translateY(-8px)}}
+  /* maths */
+  .eqrow{display:flex;align-items:center;justify-content:center;gap:14px;width:100%;line-height:1.1}
+  .grp{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;max-width:44%;background:#ffffffa8;border-radius:22px;padding:8px 12px}
+  .grp.single{max-width:90%}
+  .ob{position:relative;display:inline-block}
+  .ob.gone{opacity:.35;filter:grayscale(1)}
+  .ob.gone:after{content:"✖";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:.8em;color:#e03131;filter:none}
+  .opr{font-size:64px;font-weight:900;color:var(--coral)}
+  .eqtxt{font-size:60px;font-weight:900;color:var(--coral)}
+  /* grown-ups corner */
+  .pnl{width:100%;max-width:780px;display:flex;flex-direction:column;gap:12px}
+  .pnl section{background:#ffffffb8;border-radius:20px;padding:12px 16px}
+  .pnl h3{margin:0 0 8px;font-size:20px}
+  .chips{display:flex;flex-wrap:wrap;gap:8px}
+  .chip{font:inherit;font-size:20px;padding:10px 16px;min-height:48px;border-radius:16px;border:3px solid #fff;background:#fff;color:var(--ink);box-shadow:0 3px 0 #0002}
+  .chip.on{background:var(--mint);border-color:var(--mint);color:#fff}
+  .ctl{display:flex;align-items:center;gap:14px;font-size:20px}
+  .hint{font-size:16px;opacity:.75;margin-top:8px;line-height:1.35}
 </style>
 </head>
 <body>
@@ -80,34 +99,93 @@
 
 <script>
 /* ============ DATA ============ */
-// Letters follow a Jolly-Phonics-style order (s a t i p n first) so early words are possible.
+// Letters follow a Jolly-Phonics-style order (s a t i p n first). 'say' is the sound used by text-to-speech.
 const LETTERS = [
-  {l:'s', say:'sss', word:'snake',   pic:'🐍'},
-  {l:'a', say:'ah',  word:'apple',   pic:'🍎'},
-  {l:'t', say:'tuh', word:'tiger',   pic:'🐯'},
-  {l:'i', say:'ih',  word:'insect',  pic:'🐛'},
-  {l:'p', say:'puh', word:'penguin', pic:'🐧'},
-  {l:'n', say:'nnn', word:'nose',    pic:'👃'},
-  {l:'c', say:'kuh', word:'cat',     pic:'🐱'},
-  {l:'k', say:'kuh', word:'kite',    pic:'🪁'},
-  {l:'e', say:'eh',  word:'egg',     pic:'🥚'},
-  {l:'h', say:'huh', word:'hat',     pic:'🎩'},
-  {l:'r', say:'rrr', word:'rainbow', pic:'🌈'},
-  {l:'m', say:'mmm', word:'moon',    pic:'🌙'},
+  {l:'s', say:'sss', word:'snake',      pic:'🐍'},
+  {l:'a', say:'ah',  word:'apple',      pic:'🍎'},
+  {l:'t', say:'tuh', word:'tiger',      pic:'🐯'},
+  {l:'i', say:'ih',  word:'insect',     pic:'🐛'},
+  {l:'p', say:'puh', word:'penguin',    pic:'🐧'},
+  {l:'n', say:'nnn', word:'nose',       pic:'👃'},
+  {l:'c', say:'kuh', word:'cat',        pic:'🐱'},
+  {l:'k', say:'kuh', word:'kite',       pic:'🪁'},
+  {l:'e', say:'eh',  word:'egg',        pic:'🥚'},
+  {l:'h', say:'huh', word:'hat',        pic:'🎩'},
+  {l:'r', say:'rrr', word:'rainbow',    pic:'🌈'},
+  {l:'m', say:'mmm', word:'moon',       pic:'🌙'},
+  {l:'d', say:'duh', word:'dog',        pic:'🐶'},
+  {l:'g', say:'guh', word:'goat',       pic:'🐐'},
+  {l:'o', say:'aw',  word:'octopus',    pic:'🐙'},
+  {l:'u', say:'uh',  word:'umbrella',   pic:'☂️'},
+  {l:'l', say:'lll', word:'lion',       pic:'🦁'},
+  {l:'f', say:'fff', word:'fish',       pic:'🐟'},
+  {l:'b', say:'buh', word:'bee',        pic:'🐝'},
+  {l:'j', say:'juh', word:'juice',      pic:'🧃'},
+  {l:'z', say:'zzz', word:'zebra',      pic:'🦓'},
+  {l:'w', say:'wuh', word:'watermelon', pic:'🍉'},
+  {l:'v', say:'vvv', word:'violin',     pic:'🎻'},
+  {l:'y', say:'yuh', word:'yo-yo',      pic:'🪀'},
 ];
-const WORDS = [
-  {w:'sit',pic:'🪑'},{w:'tap',pic:'🚰'},{w:'pin',pic:'📌'},{w:'pan',pic:'🍳'},{w:'nap',pic:'😴'},
-  {w:'tin',pic:'🥫'},{w:'ant',pic:'🐜'},{w:'cat',pic:'🐱'},{w:'cap',pic:'🧢'},{w:'hat',pic:'🎩'},
-  {w:'rat',pic:'🐀'},{w:'map',pic:'🗺️'},{w:'pen',pic:'🖊️'},{w:'hen',pic:'🐔'},{w:'ham',pic:'🍖'},
-  {w:'man',pic:'👨'},{w:'ten',pic:'🔟'},{w:'net',pic:'🥅'},{w:'ram',pic:'🐏'}
-];
+
+// Word families (rhyming sets). Each token is a word, optionally followed by a picture emoji.
+// To add words, just add them to a family (or add a new family). Letters x and q aren't used.
+const FAM_DATA = {
+  at:'cat🐱 hat🎩 bat🦇 rat🐀 mat sat fat pat flat chat that',
+  an:'can pan🍳 man👨 van🚐 fan ran tan',
+  ap:'cap🧢 map🗺️ tap🚰 nap😴 lap gap zap⚡',
+  ag:'bag👜 tag🏷️ rag wag flag🚩',
+  am:'ham🍖 jam ram🐏 yam🍠 dam',
+  ad:'dad sad😢 mad😡 bad pad had',
+  it:'sit🪑 bit hit pit fit kit',
+  in:'pin📌 bin🗑️ tin🥫 win🏆 fin🦈',
+  ig:'pig🐷 dig⛏️ big wig jig',
+  ip:'lip👄 zip🤐 tip hip sip ship🚢 chip🍟 trip skip',
+  ot:'pot🍲 dot hot🔥 cot lot not',
+  op:'top🔝 hop🐇 mop🧹 pop🍿 cop stop🛑 shop🏪 drop💧',
+  og:'dog🐶 log🪵 fog🌫️ hog🐗 jog🏃 frog🐸',
+  ug:'bug🐛 hug🤗 mug☕ rug dug tug jug',
+  un:'sun☀️ fun🎉 bun run nun',
+  ut:'cut✂️ nut🥜 hut🛖 but',
+  en:'hen🐔 pen🖊️ ten🔟 men den',
+  et:'net🥅 pet🐕 wet💧 jet✈️ get set bet',
+  ed:'bed🛏️ red🔴 fed led wed',
+  eg:'leg🦵 peg beg',
+  ell:'bell🔔 shell🐚 well tell sell fell',
+  all:'ball⚽ tall wall fall call small hall',
+  ing:'ring💍 king🤴 sing wing bring thing swing',
+  ake:'cake🎂 lake make take bake snake🐍',
+  ay:'hay🌾 day may say pay way play stay tray',
+  ee:'bee🐝 see👀 tree🌳 three',
+  ar:'car🚗 star⭐ far bar jar',
+  ook:'book📖 look cook hook took',
+  ish:'fish🐟 dish wish',
+  oat:'boat⛵ coat🧥 goat🐐 float',
+  ain:'rain🌧️ train🚂 chain brain',
+  o2:'go no so',
+  e2:'me we he be',
+  mix2:'at in on up it is us an am if',
+};
+const FAM_LABEL = {o2:'-o', e2:'-e', mix2:'mixed'};
+const famLabel = f => FAM_LABEL[f] || '-' + f;
+
+const WORDS = [];
+for (const [f, s] of Object.entries(FAM_DATA)) {
+  s.trim().split(/\s+/).forEach(t => { const m = t.match(/^([a-z]+)(.*)$/); WORDS.push({w: m[1], pic: m[2] || '', f}); });
+}
+const famsFor = lens => Object.keys(FAM_DATA).filter(f => WORDS.some(x => x.f === f && lens.includes(x.w.length)));
+
 const OBJECTS = ['🍎','⭐','🐟','🎈','🚗','🐥','🍪','🦋','🍓'];
 const STICKERS = ['🦄','🐶','🐱','🐼','🦊','🐸','🐙','🦋','🐢','🦁','🐬','🦖','🐝','🐞','🚀','🌈','🐧','🦉','🐳','🦒','🐘','🦜','🐠','🚒'];
 const CHEERS = ['Great job!','You did it!','Amazing!','Super star!','Wow, well done!'];
 
 /* ============ STATE ============ */
-const KEY = 'learnplay.v1';
-let S = {unlocked:4, countMax:3, rowL:0, rowC:0, streak:0, lastDay:'', stickers:[]};
+const KEY = 'learnplay.v1';   // same key as v1 so existing progress is kept
+let S = {
+  unlocked:4, countMax:3, rowL:0, rowC:0, streak:0, lastDay:'', stickers:[],
+  lens:[3], fams:[],                    // word lengths and rhyme families to practise (no families = all)
+  opAdd:true, opSub:false, mathMax:5,   // maths settings
+  traceWords:true, auto:true            // trace words after spelling; auto level-up
+};
 try { Object.assign(S, JSON.parse(localStorage.getItem(KEY) || '{}')); } catch(e) {}
 const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch(e) {} };
 
@@ -118,10 +196,22 @@ const rand = a => a[Math.floor(Math.random() * a.length)];
 const shuffle = a => a.map(x => [Math.random(), x]).sort((p, q) => p[0] - q[0]).map(x => x[1]);
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const scr = $('#screen');
-const show = html => { scr.innerHTML = html; };
+const show = (html, cls = '') => { scr.onclick = null; scr.className = cls; scr.innerHTML = html; };
 const bubble = t => { $('#bubble').textContent = t; };
 const stats = () => { $('#stats').textContent = `🔥 ${S.streak}   ⭐ ${S.stickers.length}`; };
 const today = () => new Date().toLocaleDateString('en-CA');
+const ri = (a, b) => a + Math.floor(Math.random() * (b - a + 1));   // random integer a..b
+
+// Random pick that avoids the last few picks, so rounds don't repeat straight away.
+const recent = {L: [], W: []};
+function fresh(pool, key, keyFn, keep){
+  const r = recent[key];
+  let c = pool.filter(x => !r.includes(keyFn(x)));
+  if (!c.length) c = pool;
+  const x = rand(c);
+  r.push(keyFn(x)); while (r.length > keep) r.shift();
+  return x;
+}
 
 /* ============ SOUND ============ */
 let voice = null;
@@ -142,7 +232,7 @@ function speak(text, rate = 0.85){
       u.rate = rate; u.pitch = 1.1;
       u.onend = res; u.onerror = res;
       speechSynthesis.speak(u);
-      setTimeout(res, 5000);
+      setTimeout(res, 6000);
     } catch(e) { res(); }
   });
 }
@@ -207,7 +297,7 @@ async function ask(els, correct){
   }
 }
 
-// Finger-tracing canvas. Resolves when ~70% of the ghost letter has been covered.
+// Finger-tracing canvas. Resolves when ~70% of the ghost text has been covered.
 function traceCanvas(box, text, W, H, brush = 34){
   return new Promise(res => {
     box.innerHTML = '';
@@ -223,7 +313,7 @@ function traceCanvas(box, text, W, H, brush = 34){
     ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
     const x = W / 2, y = H / 2 + (m2.actualBoundingBoxAscent - m2.actualBoundingBoxDescent) / 2;
 
-    // Hit-test points from an offscreen mask of the glyph
+    // Hit-test points from an offscreen mask of the glyphs
     const mask = document.createElement('canvas'); mask.width = W; mask.height = H;
     const mc = mask.getContext('2d'); mc.font = ctx.font; mc.textAlign = 'center'; mc.fillText(text, x, y);
     const d = mc.getImageData(0, 0, W, H).data, pts = [], step = Math.max(10, Math.round(brush * 0.45));
@@ -259,10 +349,10 @@ function traceCanvas(box, text, W, H, brush = 34){
   });
 }
 
-/* ============ ACTIVITIES ============ */
+/* ============ LETTER SOUNDS ============ */
 async function doSound(){
   const pool = LETTERS.slice(0, S.unlocked);
-  const L = Math.random() < 0.5 ? pool[pool.length - 1] : rand(pool);
+  const L = Math.random() < 0.4 ? pool[pool.length - 1] : fresh(pool, 'L', x => x.l, 4);
 
   bubble('Listen carefully!');
   show(`<div class="stack"><div class="letters">${L.l.toUpperCase()}${L.l}</div><div class="pic huge">${L.pic}</div><div class="prompt">${L.l} is for ${L.word}</div></div>`);
@@ -284,7 +374,7 @@ async function doSound(){
   const first = await ask(els, els[opts.indexOf(L)]);
 
   S.rowL = first ? S.rowL + 1 : 0;
-  if (S.rowL >= 2 && S.unlocked < LETTERS.length) {
+  if (S.auto && S.rowL >= 2 && S.unlocked < LETTERS.length) {
     S.unlocked++; S.rowL = 0; save();
     const N = LETTERS[S.unlocked - 1];
     bubble('A new letter!'); confetti(60);
@@ -293,9 +383,10 @@ async function doSound(){
   } else { save(); await cheer(); }
 }
 
+/* ============ COUNTING ============ */
 async function doCount(){
   const max = S.countMax;
-  const n = Math.random() < 0.6 ? max : 1 + Math.floor(Math.random() * max);
+  const n = Math.random() < 0.5 ? max : ri(1, max);
   const em = rand(OBJECTS);
   const fs = n <= 6 ? 96 : n <= 12 ? 72 : 56;
 
@@ -313,16 +404,17 @@ async function doCount(){
   });
 
   const nums = new Set([n]);
-  while (nums.size < 3) nums.add(1 + Math.floor(Math.random() * (Math.max(max, n) + 2)));
+  while (nums.size < 3) nums.add(ri(1, Math.max(max, n) + 2));
   const opts = shuffle([...nums]);
   $('#p').textContent = 'How many are there?';
-  $('#objs').insertAdjacentHTML('afterend', `<div class="opts">${opts.map(o => `<button class="opt num"><span>${o}</span></button>`).join('')}</div>`);
+  $('#objs').insertAdjacentHTML('afterend', `<button id="replay" class="round">🔊</button><div class="opts">${opts.map(o => `<button class="opt num"><span>${o}</span></button>`).join('')}</div>`);
+  $('#replay').onclick = () => speak('How many are there?');
   speak('How many are there?');
   const els = $$('.opt');
   const first = await ask(els, els[opts.indexOf(n)]);
   S.rowC = first ? S.rowC + 1 : 0;
   let levelUp = false;
-  if (S.rowC >= 2 && S.countMax < 20) { S.countMax++; S.rowC = 0; levelUp = true; }
+  if (S.auto && S.rowC >= 2 && S.countMax < 20) { S.countMax++; S.rowC = 0; levelUp = true; }
   save();
 
   bubble('Now write the number!');
@@ -332,13 +424,77 @@ async function doCount(){
   if (levelUp) { bubble('Bigger numbers next time!'); confetti(50); await sleep(1200); } else await cheer();
 }
 
-async function buildWord(W, pool){
+/* ============ ADDING & TAKING AWAY ============ */
+async function doMath(){
+  const ops = [];
+  if (S.opAdd) ops.push('add');
+  if (S.opSub) ops.push('sub');
+  if (!ops.length) return doCount();           // no maths ticked in grown-ups corner: count instead
+
+  const op = rand(ops), max = S.mathMax, em = rand(OBJECTS);
+  let a, b, ans;
+  if (op === 'add') { ans = ri(2, max); a = ri(1, ans - 1); b = ans - a; }
+  else              { a = ri(2, max); b = ri(1, a - 1); ans = a - b; }
+  const sym = op === 'add' ? '+' : '−';
+  const fs = max <= 5 ? 80 : max <= 10 ? 60 : 44;
+  const objs = (n, gone = 0) => Array.from({length: n}, (_, i) => `<span class="ob${i >= n - gone ? ' gone' : ''}">${em}</span>`).join('');
+  const question = op === 'add' ? `${a} plus ${b}. How many altogether?` : `${a} take away ${b}. How many are left?`;
+
+  const nums = new Set([ans]);
+  const near = shuffle([ans - 2, ans - 1, ans + 1, ans + 2].filter(v => v >= 0 && v <= max + 2));
+  near.forEach(v => { if (nums.size < 3) nums.add(v); });
+  while (nums.size < 3) nums.add(ri(0, max + 2));
+  const opts = shuffle([...nums]);
+
+  bubble(op === 'add' ? "Let's add!" : "Let's take away!");
+  show(`<div class="prompt">${op === 'add' ? 'How many altogether?' : 'How many are left?'}</div>
+        <div class="eqrow" style="font-size:${fs}px">${op === 'add'
+          ? `<div class="grp">${objs(a)}</div><span class="opr">+</span><div class="grp">${objs(b)}</div>`
+          : `<div class="grp single">${objs(a, b)}</div>`}</div>
+        <div class="eqtxt" id="eq">${a} ${sym} ${b} = ?</div>
+        <button id="replay" class="round">🔊</button>
+        <div class="opts">${opts.map(o => `<button class="opt num"><span>${o}</span></button>`).join('')}</div>`);
+  $('#replay').onclick = () => speak(question);
+  speak(question);
+  const els = $$('.opt');
+  await ask(els, els[opts.indexOf(ans)]);
+
+  $('#eq').textContent = `${a} ${sym} ${b} = ${ans}`;
+  await speak(op === 'add' ? `${a} plus ${b} equals ${ans}` : `${a} take away ${b} equals ${ans}`);
+  await cheer();
+}
+
+/* ============ WORDS ============ */
+// The practice set chosen in grown-ups corner: selected lengths, narrowed to selected rhyme families.
+function wordPool(){
+  let p = WORDS.filter(x => S.lens.includes(x.w.length));
+  if (S.fams.length) { const f = p.filter(x => S.fams.includes(x.f)); if (f.length) p = f; }
+  return p.length ? p : WORDS.filter(x => x.w.length === 3);
+}
+
+// Wrong-answer choices: from the practice set first, then same length, then anything.
+function distract(W, n, needPic){
+  const seen = new Set([W.w]), picSeen = new Set([W.pic]), out = [];
+  for (const tier of [wordPool(), WORDS.filter(x => x.w.length === W.w.length), WORDS]) {
+    for (const x of shuffle(tier)) {
+      if (out.length >= n) return out;
+      if (seen.has(x.w)) continue;
+      if (needPic && (!x.pic || picSeen.has(x.pic))) continue;
+      seen.add(x.w); if (x.pic) picSeen.add(x.pic); out.push(x);
+    }
+  }
+  return out;
+}
+
+async function buildWord(W){
   bubble("Let's spell it!");
-  const extra = shuffle(pool.filter(L => !W.w.includes(L.l))).slice(0, 2).map(L => L.l);
+  const extra = shuffle(LETTERS.map(L => L.l).filter(ch => !W.w.includes(ch))).slice(0, 2);
   const tiles = shuffle([...W.w, ...extra]);
-  show(`<div class="pic huge">${W.pic}</div>
+  show(`${W.pic ? `<div class="pic huge">${W.pic}</div>` : ''}
+        <button id="replay" class="round">🔊</button>
         <div id="slots">${[...W.w].map(() => '<div class="slot"></div>').join('')}</div>
         <div id="tiles">${tiles.map(t => `<button class="tile" data-l="${t}">${t}</button>`).join('')}</div>`);
+  $('#replay').onclick = () => speak(W.w);
   speak(`Let's spell ${W.w}`);
   const slots = $$('.slot');
   await new Promise(res => {
@@ -355,44 +511,45 @@ async function buildWord(W, pool){
   good(); confetti(30);
   await speak(`${[...W.w].join(', ')}. ${W.w}!`, 0.7);
 
-  bubble('Now write the word!');
-  show(`<div class="prompt">Trace the word <b>${W.w}</b></div><div id="tbox"></div>`);
-  await traceCanvas($('#tbox'), W.w, 1000, 420, 30);
+  if (S.traceWords) {
+    bubble('Now write the word!');
+    show(`<div class="prompt">Trace the word <b>${W.w}</b></div><div id="tbox"></div>`);
+    await traceCanvas($('#tbox'), W.w, 1000, 420, 30);
+  }
 }
 
-async function readWord(W, have){
+async function readWord(W){
+  const others = distract(W, 2, true);
+  if (others.length < 2) return hearWord(W);        // not enough different pictures
   bubble('Can you read it?');
-  const opts = shuffle([W, ...shuffle(have.filter(x => x.w !== W.w)).slice(0, 2)]);
+  const opts = shuffle([W, ...others]);
   show(`<div class="prompt">Read the word, then pick the picture</div>
-        <div class="bigword">${W.w}</div><button id="say" class="round">🔊</button>
+        <div class="bigword">${W.w}</div><button id="replay" class="round">🔊</button>
         <div class="opts">${opts.map(o => `<button class="opt"><span>${o.pic}</span></button>`).join('')}</div>`);
-  $('#say').onclick = () => speak(W.w);
+  $('#replay').onclick = () => speak(W.w);
   const els = $$('.opt');
   await ask(els, els[opts.indexOf(W)]);
   await speak(`${W.w}!`);
 }
 
-async function firstLetter(pool){
-  const L = Math.random() < 0.5 ? pool[pool.length - 1] : rand(pool);
-  bubble('What does it start with?');
-  const opts = shuffle([L, ...shuffle(pool.filter(x => x.say !== L.say)).slice(0, 2)]);
-  show(`<div class="pic huge">${L.pic}</div><div class="prompt">${L.word}</div>
-        <div class="prompt">Which letter does it start with?</div>
-        <div class="opts">${opts.map(o => `<button class="opt num"><span>${o.l}</span></button>`).join('')}</div>`);
-  speak(`What does ${L.word} start with?`);
+async function hearWord(W){
+  bubble('Which word did you hear?');
+  const opts = shuffle([W, ...distract(W, 2, false)]);
+  show(`<div class="prompt">Listen, then tap the word</div><button id="replay" class="round">🔊</button>
+        <div class="opts">${opts.map(o => `<button class="opt num"><span style="font-size:56px">${o.w}</span></button>`).join('')}</div>`);
+  $('#replay').onclick = () => speak(W.w);
+  speak(W.w);
   const els = $$('.opt');
-  await ask(els, els[opts.indexOf(L)]);
-  await playSound(L);
+  await ask(els, els[opts.indexOf(W)]);
 }
 
 async function doWord(){
-  const pool = LETTERS.slice(0, S.unlocked);
-  const have = WORDS.filter(x => [...x.w].every(ch => pool.some(L => L.l === ch)));
-  if (have.length < 3) await firstLetter(pool);        // not enough letters for words yet
-  else {
-    const W = rand(have);
-    if (Math.random() < 0.5) await buildWord(W, pool); else await readWord(W, have);
-  }
+  const W = fresh(wordPool(), 'W', x => x.w, 5);
+  const modes = W.pic ? ['build', 'build', 'read', 'hear'] : ['build', 'hear'];
+  const m = rand(modes);
+  if (m === 'build') await buildWord(W);
+  else if (m === 'read') await readWord(W);
+  else await hearWord(W);
   await cheer();
 }
 
@@ -400,7 +557,7 @@ async function doWord(){
 async function daily(){
   $('#homeBtn').style.visibility = 'visible';
   await doSound(); await doSound();
-  await doCount(); await doCount();
+  await doCount(); await doMath();
   await doWord();  await doWord();
   finishDaily();
 }
@@ -428,21 +585,63 @@ function stickerBook(){
         <div class="stickers">${S.stickers.length ? S.stickers.map(s => `<div>${s}</div>`).join('') : '<div style="grid-column:1/-1;font-size:28px">Finish today\'s mission to win your first sticker!</div>'}</div>`);
 }
 
+/* ---- Grown-ups corner (hold the faint ⚙️ on the home screen for about 1 second) ---- */
 function parent(){
   $('#homeBtn').style.visibility = 'visible';
   bubble('Grown-ups corner');
-  show(`<div class="stack"><div class="prompt">Grown-ups</div>
-        <div style="font-size:22px">Letters unlocked: ${S.unlocked}/${LETTERS.length} · Counting up to ${S.countMax}</div>
-        <div class="row">
-          <button class="mini" id="pL">＋<small>Letter</small></button>
-          <button class="mini" id="pLm">－<small>Letter</small></button>
-          <button class="mini" id="pC">＋<small>Count</small></button>
-          <button class="mini" id="pR">🗑<small>Reset</small></button>
-        </div></div>`);
-  $('#pL').onclick  = () => { S.unlocked = Math.min(LETTERS.length, S.unlocked + 1); save(); parent(); };
-  $('#pLm').onclick = () => { S.unlocked = Math.max(4, S.unlocked - 1); save(); parent(); };
-  $('#pC').onclick  = () => { S.countMax = Math.min(20, S.countMax + 1); save(); parent(); };
-  $('#pR').onclick  = () => { if (confirm('Reset all progress?')) { localStorage.removeItem(KEY); location.reload(); } };
+  const st = scr.scrollTop;
+  const chip = (on, a, v, label) => `<button class="chip${on ? ' on' : ''}" data-a="${a}"${v === undefined ? '' : ` data-v="${v}"`}>${label}</button>`;
+  const pool = wordPool();
+  show(`<div class="pnl">
+    <section><h3>Letter sounds</h3>
+      <div class="ctl">${chip(false, 'L-', undefined, '−')}<b>${S.unlocked} of ${LETTERS.length} letters unlocked</b>${chip(false, 'L+', undefined, '＋')}</div>
+    </section>
+    <section><h3>Word length</h3>
+      <div class="chips">${[2, 3, 4, 5].map(n => chip(S.lens.includes(n), 'len', n, n + ' letters')).join('')}</div>
+    </section>
+    <section><h3>Rhyming families <small>(none ticked = all)</small></h3>
+      <div class="chips">${famsFor(S.lens).map(f => chip(S.fams.includes(f), 'fam', f, famLabel(f))).join('')}</div>
+      <div class="hint"><b>${pool.length} words in the practice set:</b> ${pool.slice(0, 60).map(x => x.w).join(', ')}${pool.length > 60 ? ' …' : ''}</div>
+    </section>
+    <section><h3>Maths</h3>
+      <div class="chips">${chip(S.opAdd, 'add', undefined, '＋ Adding')}${chip(S.opSub, 'sub', undefined, '− Taking away')}</div>
+      <div class="hint">Numbers up to:</div>
+      <div class="chips">${[5, 10, 20].map(n => chip(S.mathMax === n, 'max', n, n)).join('')}</div>
+      <div class="hint">Counting up to:</div>
+      <div class="ctl">${chip(false, 'C-', undefined, '−')}<b>${S.countMax}</b>${chip(false, 'C+', undefined, '＋')}</div>
+    </section>
+    <section><h3>Other</h3>
+      <div class="chips">${chip(S.traceWords, 'trace', undefined, '✏️ Trace words')}${chip(S.auto, 'auto', undefined, '📈 Auto level-up')}</div>
+      <div class="hint">Auto level-up unlocks new letters and bigger counting numbers after 2 right answers in a row.</div>
+    </section>
+    <section><div class="chips">${chip(false, 'reset', undefined, '🗑 Reset all progress')}</div></section>
+  </div>`, 'top');
+  scr.scrollTop = st;
+
+  scr.onclick = e => {
+    const b = e.target.closest('[data-a]');
+    if (!b) return;
+    const a = b.dataset.a, v = b.dataset.v;
+    if (a === 'L-') S.unlocked = Math.max(4, S.unlocked - 1);
+    else if (a === 'L+') S.unlocked = Math.min(LETTERS.length, S.unlocked + 1);
+    else if (a === 'C-') S.countMax = Math.max(3, S.countMax - 1);
+    else if (a === 'C+') S.countMax = Math.min(20, S.countMax + 1);
+    else if (a === 'len') {
+      const n = +v, has = S.lens.includes(n);
+      if (has && S.lens.length === 1) return;                 // keep at least one length
+      S.lens = (has ? S.lens.filter(x => x !== n) : [...S.lens, n]).sort();
+      const avail = famsFor(S.lens);
+      S.fams = S.fams.filter(f => avail.includes(f));
+    }
+    else if (a === 'fam') S.fams = S.fams.includes(v) ? S.fams.filter(f => f !== v) : [...S.fams, v];
+    else if (a === 'add') S.opAdd = !S.opAdd;
+    else if (a === 'sub') S.opSub = !S.opSub;
+    else if (a === 'max') S.mathMax = +v;
+    else if (a === 'trace') S.traceWords = !S.traceWords;
+    else if (a === 'auto') S.auto = !S.auto;
+    else if (a === 'reset') { if (confirm('Reset all progress and settings?')) { try { localStorage.removeItem(KEY); } catch(err) {} location.reload(); } return; }
+    save(); parent();
+  };
 }
 
 async function practice(fn){
@@ -459,6 +658,7 @@ function home(){
         <div class="row">
           <button class="mini" id="bS">🔤<small>Sounds</small></button>
           <button class="mini" id="bC">🔢<small>Counting</small></button>
+          <button class="mini" id="bM">➕<small>Maths</small></button>
           <button class="mini" id="bW">📖<small>Words</small></button>
           <button class="mini" id="bT">🏆<small>Stickers</small></button>
         </div>
@@ -466,6 +666,7 @@ function home(){
   $('#mix').onclick = daily;
   $('#bS').onclick = () => practice(doSound);
   $('#bC').onclick = () => practice(doCount);
+  $('#bM').onclick = () => practice(doMath);
   $('#bW').onclick = () => practice(doWord);
   $('#bT').onclick = stickerBook;
   let timer;                                   // hold the gear for 1.2s to open grown-ups corner
