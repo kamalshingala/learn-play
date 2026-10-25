@@ -18,10 +18,13 @@ const Q = {
   },
 
   /* Speak and register as the speaker-button action. Never rejects. */
-  say(text) {
-    const f = typeof text === 'function' ? text : () => Sound.speak(text);
-    UI.setReplay(() => { try { f(); } catch (e) {} });
-    try { return Promise.resolve(f()); } catch (e) { return Promise.resolve(); }
+  say(text) {                                                // text, or a function(ok) that may say several things in a row
+    const run = () => {
+      const my = ++Sound.chain, ok = () => my === Sound.chain;   // a newer sound cancels an older sequence, so voices never overlap
+      try { return Promise.resolve(typeof text === 'function' ? text(ok) : Sound.speak(text)); } catch (e) { return Promise.resolve(); }
+    };
+    UI.setReplay(run);
+    return run();
   },
 
   dotsHTML() {
@@ -33,7 +36,7 @@ const Q = {
   frame(T, { say, prompt, visual = '', body = '', cls = '' }) {
     if (!say) throw new Error('question without speech');
     UI.show(`<div class="q ${cls}">${this.dotsHTML()}<div class="prompt">${prompt}</div>${visual ? `<div class="visual">${visual}</div>` : ''}${body}</div>`);
-    this.armedAt = performance.now() + 380 * TIME;
+    this.armedAt = performance.now() + 260 * TIME;
     UI.bubble('Have a go! 🌟');
     this.say(say);
   },
@@ -41,7 +44,7 @@ const Q = {
   async win(T, el, size = 'normal') {
     UI.lock();
     celebrate(el, size);
-    await T.sleep({ small: 650, normal: 1150, big: 2000 }[size]);
+    await T.sleep({ small: 420, normal: 650, big: 1500 }[size]);
   },
 
   /* Pick one of several options. Returns true if right first time. */
@@ -104,7 +107,7 @@ const Q = {
       els.forEach(b => b.addEventListener('click', () => {
         if (!this.armed() || b.classList.contains('done')) return;
         b.classList.add('done'); c++; b.querySelector('i').textContent = c; Sound.pop(); Sound.speak(String(c), { rate: 0.9 });
-        if (c === n) { UI.lock(); setTimeout(resolve, 650 * TIME); }
+        if (c === n) { UI.lock(); setTimeout(resolve, 450 * TIME); }
       }));
     });
   },
@@ -125,7 +128,7 @@ const Q = {
       els.forEach(b => b.addEventListener('click', () => {
         if (!this.armed() || b.classList.contains('done') || c >= n) return;
         b.classList.add('done'); c++; b.querySelector('i').textContent = c; Sound.pop(); Sound.speak(String(c), { rate: 0.9 });
-        if (c === n) { UI.lock(); setTimeout(resolve, 500 * TIME); }
+        if (c === n) { UI.lock(); setTimeout(resolve, 350 * TIME); }
       }));
     });
     await this.win(T, $('.objs', UI.scr));
@@ -156,7 +159,7 @@ const Q = {
       ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.lineWidth = brush; ctx.strokeStyle = '#ff6b6b';
 
       let last = null, done = false, hits = 0;
-      const finish = () => { if (done) return; done = true; UI.lock(); setTimeout(resolve, 200 * TIME); };
+      const finish = () => { if (done) return; done = true; UI.lock(); setTimeout(resolve, 150 * TIME); };
       this.cur = { kind: 'trace', root: UI.scr, solve: () => { finish(); return true; } };
       if (pts.length < 5) { finish(); return; }                   // font failed to draw: never trap the child
       const pos = e => { const r = c.getBoundingClientRect(); return { x: (e.clientX - r.left) * W / r.width, y: (e.clientY - r.top) * H / r.height }; };
@@ -187,7 +190,7 @@ const Q = {
   /* A simple screen with a button. Taps in the first moments are ignored so a double-tap can't skip it. */
   async card(T, { say, html, button = 'Next ➡', cls = '', size = 'normal', burst = false }) {
     UI.show(`<div class="q card ${cls}">${html}<button class="bigbtn" id="cardBtn">${button}</button></div>`);
-    const at = performance.now() + 700 * TIME;
+    const at = performance.now() + 600 * TIME;
     UI.bubble('🌟');
     if (say) this.say(say);
     if (burst) celebrate($('.q', UI.scr), size);

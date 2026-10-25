@@ -46,7 +46,7 @@ const Flow = {
 
 /* ---------------- Sound ---------------- */
 const Sound = {
-  muted: false, voice: null, sid: 0, ttsOK: true, started: false, fails: 0,
+  muted: false, voice: null, sid: 0, chain: 0, ttsOK: true, started: false, fails: 0, lastRetry: 0,
   ac: null, unlocked: false, audioOK: {}, el: null, noiseBuf: null,
 
   init() {
@@ -57,7 +57,7 @@ const Sound = {
     }
     document.addEventListener('visibilitychange', () => { if (document.hidden) this.stop(); });
     // iPad Safari only allows speech/audio once it has been "unlocked" by a real tap.
-    const un = () => this.unlock();
+    const un = () => { this.unlock(); this.touch(); };
     ['pointerdown', 'touchstart', 'click'].forEach(t => document.addEventListener(t, un, { capture: true, passive: true }));
   },
   pickVoice() {
@@ -78,13 +78,16 @@ const Sound = {
       }
     } catch (e) {}
   },
+  touch() {                                    // a real tap: if speech was written off after failures, give it another chance
+    if (!this.ttsOK && Date.now() - this.lastRetry > 8000) { this.lastRetry = Date.now(); this.ttsOK = true; this.fails = 0; }
+  },
   setMuted(m) {
     this.muted = m;
     try { localStorage.setItem('lp.muted', m ? '1' : '0'); } catch (e) {}
     if (m) this.stop();
   },
   stop() {
-    this.sid++;
+    this.sid++; this.chain++;
     try { if (hasTTS()) speechSynthesis.cancel(); } catch (e) {}
     try { if (this.el) { this.el.pause(); this.el = null; } } catch (e) {}
   },
@@ -94,6 +97,7 @@ const Sound = {
     const my = ++this.sid;
     return new Promise(res => {
       if (this.muted || !text || !hasTTS()) return res();
+      if (!this.unlocked) return void setTimeout(res, 250 * TIME);   // browsers block speech before the first tap; don't count that as a failure
       const rate = o.rate || 0.85;
       const est = Math.min(8000, 700 + text.length * 80 / rate);
       if (!this.ttsOK) return void setTimeout(res, est * 0.3 * TIME);
@@ -144,6 +148,13 @@ const Sound = {
     }
     return this.speak(L.say, { rate: 0.6 });
   },
+  /* Say several things in a row. Parts are text, or a letter object (plays its sound). Stops if replaced. */
+  async play(ok, parts) {
+    for (const p of parts) {
+      if (!ok()) return;
+      if (typeof p === 'string') await this.speak(p); else await this.letter(p);
+    }
+  },
   cheer() { this.speak(rand(['Yay!', 'Hooray!', 'Well done!', 'Super job!', 'Fantastic!', 'You did it!']), { rate: 0.95, pitch: 1.3 }); },
 
   /* Synthesised effects (no files needed) */
@@ -177,14 +188,10 @@ const Sound = {
   pop()  { const ac = this._ctx(); if (ac) this.note(880, ac.currentTime, 0.08, { vol: 0.12 }); },
   bad()  { const ac = this._ctx(); if (ac) { this.note(330, ac.currentTime, 0.16, { type: 'triangle', vol: 0.1 }); this.note(262, ac.currentTime + 0.14, 0.22, { type: 'triangle', vol: 0.1 }); } },
   good() { const ac = this._ctx(); if (ac) [523, 659, 784].forEach((f, i) => this.note(f, ac.currentTime + i * 0.09, 0.25, { type: 'triangle', vol: 0.14 })); },
-  yay(size = 'normal') {                       // fanfare + sparkle + crowd cheer
+  yay(size = 'normal') {                       // short happy fanfare
     const ac = this._ctx(); if (!ac) return; const t = ac.currentTime;
-    const ns = size === 'small' ? [523, 659, 784] : [523, 659, 784, 1047, 1319];
-    ns.forEach((f, i) => this.note(f, t + i * 0.09, 0.3, { type: 'triangle', vol: 0.15 }));
-    if (size !== 'small') {
-      [1568, 1976, 2349, 2637].forEach((f, i) => this.note(f, t + 0.45 + i * 0.07, 0.22, { vol: 0.06 }));
-      this.note(300, t + 0.02, 0.5, { type: 'sine', vol: 0.12, to: 900 });
-      this.noise(t + 0.05, size === 'big' ? 1.7 : 0.95, 0.09);
-    }
+    const ns = size === 'small' ? [659, 880] : [523, 659, 784, 1047];
+    ns.forEach((f, i) => this.note(f, t + i * 0.08, 0.22, { type: 'triangle', vol: 0.14 }));
+    if (size === 'big') [1319, 1568, 2093].forEach((f, i) => this.note(f, t + 0.34 + i * 0.07, 0.2, { vol: 0.06 }));
   },
 };

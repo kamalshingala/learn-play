@@ -154,8 +154,11 @@ async function missingFirst(T, Q, c) {
 async function trueEq(T, Q, c) {
   const max = MAX[c.lvl], a = ri(2, max - 1), b = ri(1, max - a), r = a + b;
   const fake = shuffle([r - 2, r - 1, r + 1, r + 2].filter(x => x >= 0)).slice(0, 2);
-  const opts = shuffle([{ html: O.eq(`${a} + ${b} = ${r}`), ok: true }, ...fake.map(f => ({ html: O.eq(`${a} + ${b} = ${f}`), ok: false }))]);
-  await Q.choice(T, { say: 'Which sum is true?', prompt: 'Which sum is <b>true</b>?', opts, layout: 'eqs' });
+  const items = shuffle([r, ...fake]);
+  const opts = items.map(v => ({ html: O.eq(`${a} + ${b} = ${v}`), ok: v === r }));
+  // read every choice aloud, so a child who can't read the sums can still play
+  const say = `Which sum is true? ${items.map(v => `${a} plus ${b} equals ${v}`).join('. ')}`;
+  await Q.choice(T, { say, prompt: 'Which sum is <b>true</b>?', opts, layout: 'eqs' });
 }
 async function addThree(T, Q, c) {
   const a = ri(1, 6), b = ri(1, 6), d = ri(1, 6), ans = a + b + d;

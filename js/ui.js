@@ -7,6 +7,11 @@ const UI = {
     this.scr = $('#screen');
     $('#replay').addEventListener('click', () => this.replay());
     this.scr.addEventListener('pointerdown', () => this.arm());
+    this.scr.addEventListener('click', e => {
+      const w = e.target.closest('[data-say]');                 // any word or sentence marked data-say reads itself aloud
+      if (w) { Sound.chain++; Sound.speak(w.dataset.say, { rate: 0.8 }); w.classList.remove('said'); void w.offsetWidth; w.classList.add('said'); return; }
+      if (e.target.closest('.prompt')) this.replay();           // tapping the question text asks it again
+    });
   },
   reset() {                                   // called whenever a new flow begins
     document.body.classList.remove('locked');

@@ -46,14 +46,14 @@ async function buildWord(T, Q, c) {
 async function readPick(T, Q, c) {
   const pool = wordPool(c.lvl), pics = withPic(pool.length > 3 ? pool : WORDS), W = pickW(pics, 'WR');
   const opts = pickOpts(W, similar(W, 6, true, pics), 3, x => x.pic, x => O.pic(x.pic));
-  await Q.choice(T, { say: 'Read the word. Which picture matches?', prompt: 'Read the word. Which picture matches?', visual: `<div class="bigword">${W.w}</div>`, opts,
-    hint: W.w });
+  await Q.choice(T, { say: 'Which picture matches this word? Tap the word to hear it.', prompt: 'Which picture matches this word?',
+    visual: `<button class="speakword" data-say="${W.w}"><span class="bigword">${W.w}</span><small>👆 tap to hear</small></button>`, opts, hint: W.w });
 }
 async function hearPick(T, Q, c) {
   const pool = wordPool(c.lvl), W = pickW(pool, 'WH');
   const near = c.lvl === 1 ? similar(W, 6, false, pool) : lookalike(W, 6, pool);
   const opts = pickOpts(W, near, c.lvl === 3 ? 4 : 3, x => x.w, x => O.word(x.w));
-  await Q.choice(T, { say: () => Sound.speak(W.w), prompt: 'Listen. Which word did you hear?', visual: O.speaker, opts, layout: 'words' });
+  await Q.choice(T, { say: `Find the word ${W.w}`, prompt: 'Find the word you hear', visual: O.speaker, opts, layout: 'words' });
 }
 async function rhyme(T, Q, c) {
   const pool = wordPool(c.lvl), fams = {};
@@ -90,13 +90,14 @@ async function digraph(T, Q, c) {
 }
 async function sentenceBuild(T, Q, c) {
   const S1 = Q.recent(SENTENCES, 'SB', x => x.s, 5);
-  await Q.seq(T, { say: `Build the sentence. ${S1.s}`, prompt: 'Build the sentence', visual: O.big(S1.pics), tokens: S1.tokens, onTile: () => {} });
+  await Q.seq(T, { say: `Build the sentence. ${S1.s}`, prompt: 'Build the sentence', visual: O.big(S1.pics), tokens: S1.tokens, onTile: t => Sound.speak(t, { rate: 0.9 }) });
   Sound.speak(S1.s);
 }
 async function sentenceRead(T, Q, c) {
   const S1 = Q.recent(SENTENCES, 'SR', x => x.s, 5);
   const opts = pickOpts(S1, SENTENCES, 3, x => x.pics, x => O.pic(x.pics));
-  await Q.choice(T, { say: 'Read the sentence. Which picture matches?', prompt: 'Read the sentence. Which picture matches?', visual: `<div class="sentence">${S1.s}.</div>`, opts, hint: S1.s });
+  await Q.choice(T, { say: `Which picture matches this sentence? ${S1.s}`, prompt: 'Which picture matches this sentence?',
+    visual: `<button class="speakword" data-say="${S1.s}"><span class="sentence">${S1.s}.</span><small>👆 tap to hear</small></button>`, opts, hint: S1.s });
 }
 
 GEN.words[1] = [

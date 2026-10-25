@@ -139,6 +139,7 @@ const go = {
     onTap($('#mission'), () => { Sound.unlock(); Flow.run(T => mission(T)); });
     $$('.cat').forEach(b => onTap(b, () => go.levels(b.dataset.c)));
     onTap($('#book'), () => go.book());
+    Q.say('Tap the big red button to play. Or choose sounds, counting, maths or words.');
     let tm = 0; const g = $('#gear');
     g.onpointerdown = () => { tm = setTimeout(() => go.parent(), 1500); };
     ['onpointerup', 'onpointerleave', 'onpointercancel'].forEach(ev => { g[ev] = () => clearTimeout(tm); });
@@ -148,9 +149,10 @@ const go = {
     Flow.begin(); UI.homeBtn(true);
     const C = CATS.find(c => c.id === cat);
     UI.bubble('Pick a level');
+    Q.say(`${C.label}. Pick a level.`);
     UI.show(`<div class="q"><div class="prompt">${C.icon} ${C.label}</div><div class="lvls">${LEVELS.map(L => {
       const ok = unlocked(cat, L.n), p = S.prog[cat][L.n];
-      return `<button class="lvl ${ok ? '' : 'locked'}" data-l="${L.n}" ${ok ? '' : 'disabled'}><span class="medal">${p.sets ? L.medal : ok ? '⭐' : '🔒'}</span><b>Level ${L.n}</b><small>${L.name}</small>
+      return `<button class="lvl ${ok ? '' : 'locked'}" data-l="${L.n}" ${ok ? '' : 'disabled'}><span class="medal">${p.sets ? L.medal : ok ? '⭐' : '🔒'}</span><b>Level ${L.n}</b><span class="lstars">${'⭐'.repeat(L.n)}</span><small>${L.name}</small>
         <small>${p.sets ? `Sets done: ${p.sets}` : ok ? 'Not played yet' : `Finish level ${L.n - 1} first`}</small>
         <span class="bar"><i style="width:${Math.min(100, p.n / S.opts.setSize * 100)}%"></i></span></button>`;
     }).join('')}</div></div>`);
@@ -161,6 +163,7 @@ const go = {
     Flow.begin(); UI.homeBtn(true); UI.stats();
     const got = Object.keys(S.badges).length;
     UI.bubble('Look what you won!');
+    Q.say(got ? 'Look at everything you have won! Tap a badge to hear about it.' : 'Play to win badges and stickers!');
     UI.show(`<div class="book"><h2>My badges <small>${got} of ${BADGES.length}</small></h2>
       <div class="badges">${BADGES.map(b => `<button class="bdg ${S.badges[b.id] ? 'got' : ''}" data-id="${b.id}"><span class="medal">${b.icon}</span>${b.tag ? `<span class="tag">${b.tag}</span>` : ''}<small>${b.title}</small></button>`).join('')}</div>
       <h2>My stickers <small>${S.stickers.length}</small></h2>

@@ -30,15 +30,15 @@ async function teachTrace(T, Q, c) {
   const L = Math.random() < 0.4 ? pool[pool.length - 1] : pickL(pool);
   const [w, p] = mainWord(L);
   await Q.card(T, {
-    say: async () => { await Sound.letter(L); await Sound.speak(`${up(L.l)} is for ${w}`); },
+    say: ok => Sound.play(ok, [L, `${up(L.l)} is for ${w}`]),
     html: `<div class="prompt">Meet the letter</div><div class="letters">${up(L.l)}${L.l}</div><div class="pic huge">${p}</div><div class="prompt">${up(L.l)} is for ${w}</div>`,
     button: 'Trace it ✏️',
   });
-  await Q.trace(T, { say: () => Sound.letter(L), prompt: `Trace the letter ${L.l}`, text: L.l });
+  await Q.trace(T, { say: ok => Sound.play(ok, [`Trace the letter ${up(L.l)}`, L]), prompt: `Trace the letter ${L.l}`, text: L.l });
 }
 async function soundToPic(T, Q, c) {
   const pool = LP(c.lvl), L = pickL(pool), { opts } = picOpts(L, pool, 3);
-  await Q.choice(T, { say: () => Sound.letter(L), prompt: 'Which one starts with this sound?', visual: c.lvl === 1 ? O.big(`${up(L.l)}${L.l}`) : O.speaker, opts,
+  await Q.choice(T, { say: ok => Sound.play(ok, ['Which one starts with this sound?', L]), prompt: 'Which one starts with this sound?', visual: c.lvl === 1 ? O.big(`${up(L.l)}${L.l}`) : O.speaker, opts,
     hint: `${up(L.l)} is for ${mainWord(L)[0]}` });
 }
 async function picToLetter(T, Q, c) {
@@ -58,7 +58,7 @@ async function upperLower(T, Q, c) {
 }
 async function soundToLetter(T, Q, c) {
   const pool = LP(c.lvl), L = pickL(pool);
-  await Q.choice(T, { say: () => Sound.letter(L), prompt: 'Which letter makes this sound?', visual: O.speaker,
+  await Q.choice(T, { say: ok => Sound.play(ok, ['Which letter makes this sound?', L]), prompt: 'Which letter makes this sound?', visual: O.speaker,
     opts: letterOpts(L, pool, c.lvl === 3 ? 4 : 3, c.lvl === 3), layout: 'letters' });
 }
 async function oddOne(T, Q, c) {

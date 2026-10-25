@@ -139,3 +139,11 @@ body.locked #screen{pointer-events:none}                       /* no taps while 
 @keyframes shake{25%{transform:translateX(-12px)}75%{transform:translateX(12px)}}
 @media (max-width:640px){#bubble{font-size:17px;padding:8px 12px}#mascot{font-size:40px}#stats{font-size:16px}.opt{min-width:120px}}
 @media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important}}
+
+/* tap-to-hear words and sentences */
+.speakword{background:#fff;border:none;border-radius:26px;padding:10px 26px 8px;box-shadow:var(--shadow);display:flex;flex-direction:column;align-items:center;gap:0;max-width:92%}
+.speakword small{font-size:18px;font-weight:700;opacity:.65}
+.speakword .sentence{display:block}
+.said{animation:pop .35s}
+.lstars{font-size:22px;letter-spacing:2px}
+.prompt{cursor:pointer}

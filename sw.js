@@ -1,8 +1,8 @@
 // Offline support. Network-first: when online you always get the newest files; offline it falls back to the saved copy.
-const CACHE = 'learn-play-v3';
-const ASSETS = ['./', 'index.html', 'style.css?v=3', 'manifest.json', 'icon-180.png', 'icon-512.png',
-  'js/core.js?v=3', 'js/fx.js?v=3', 'js/data.js?v=3', 'js/ui.js?v=3', 'js/q.js?v=3',
-  'js/gen-sounds.js?v=3', 'js/gen-math.js?v=3', 'js/gen-words.js?v=3', 'js/app.js?v=3'];
+const CACHE = 'learn-play-v4';
+const ASSETS = ['./', 'index.html', 'style.css?v=4', 'manifest.json', 'icon-180.png', 'icon-512.png',
+  'js/core.js?v=4', 'js/fx.js?v=4', 'js/data.js?v=4', 'js/ui.js?v=4', 'js/q.js?v=4',
+  'js/gen-sounds.js?v=4', 'js/gen-math.js?v=4', 'js/gen-words.js?v=4', 'js/app.js?v=4'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => Promise.all(ASSETS.map(a => c.add(a).catch(() => {})))));
