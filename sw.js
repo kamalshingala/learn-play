@@ -1,22 +1,23 @@
-// Offline cache: serves cached files instantly and refreshes them in the background.
-const CACHE = 'learn-play-v2';
-const ASSETS = ['./', 'index.html', 'manifest.json', 'icon-180.png', 'icon-512.png'];
+// Offline support. Network-first: when online you always get the newest files; offline it falls back to the saved copy.
+const CACHE = 'learn-play-v3';
+const ASSETS = ['./', 'index.html', 'style.css?v=3', 'manifest.json', 'icon-180.png', 'icon-512.png',
+  'js/core.js?v=3', 'js/fx.js?v=3', 'js/data.js?v=3', 'js/ui.js?v=3', 'js/q.js?v=3',
+  'js/gen-sounds.js?v=3', 'js/gen-math.js?v=3', 'js/gen-words.js?v=3', 'js/app.js?v=3'];
 
 self.addEventListener('install', e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)));
+  e.waitUntil(caches.open(CACHE).then(c => Promise.all(ASSETS.map(a => c.add(a).catch(() => {})))));
   self.skipWaiting();
 });
-
 self.addEventListener('activate', e => {
-  e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k)))));
-  self.clients.claim();
+  e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim()));
 });
-
 self.addEventListener('fetch', e => {
-  if (e.request.method !== 'GET') return;
-  e.respondWith(caches.open(CACHE).then(async c => {
-    const hit = await c.match(e.request);
-    const net = fetch(e.request).then(r => { if (r.ok && r.status === 200) c.put(e.request, r.clone()); return r; }).catch(() => hit);
-    return hit || net;
-  }));
+  const r = e.request;
+  if (r.method !== 'GET' || new URL(r.url).origin !== location.origin || r.headers.has('range')) return;
+  e.respondWith(
+    fetch(r).then(res => {
+      if (res.ok) { const copy = res.clone(); caches.open(CACHE).then(c => c.put(r, copy)); }
+      return res;
+    }).catch(() => caches.match(r).then(hit => hit || caches.match('index.html')))
+  );
 });
