@@ -6,10 +6,22 @@
 [hidden]{display:none!important}
 html,body{margin:0;height:100%;overflow:hidden;touch-action:manipulation;overscroll-behavior:none}
 body{font-family:ui-rounded,"SF Pro Rounded","Arial Rounded MT Bold","Helvetica Neue",Arial,sans-serif;color:var(--ink);
-  background:radial-gradient(1200px 600px at 50% -10%,#fff6c9 0,transparent 60%),linear-gradient(180deg,#c4e9ff 0%,#fff8e1 72%);
+  background:linear-gradient(180deg,var(--bg1,#c4e9ff) 0%,var(--bg2,#fff8e1) 100%);
   padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
 button{font:inherit;color:inherit;cursor:pointer}
-#app{height:100%;display:flex;flex-direction:column}
+#app{height:100%;display:flex;flex-direction:column;position:relative;z-index:1}
+#scene,#sky{position:fixed;inset:0;pointer-events:none;z-index:0;background-size:cover;background-position:center}
+#scene svg,#sky svg{width:100%;height:100%;display:block}
+#sky .drift{width:100%;height:100%;animation:drift 60s ease-in-out infinite alternate;will-change:transform}
+@keyframes drift{from{transform:translateX(-3%)}to{transform:translateX(3%)}}
+@media (prefers-reduced-motion:reduce){#sky .drift{animation:none}}
+#mascot img{width:52px;height:52px;object-fit:contain;display:block}
+.prompt,.bigtxt,.bigword,.sentence,.eq{text-shadow:0 0 6px #fff,0 0 12px #fff,0 2px 0 rgba(255,255,255,.8)}
+.themes{display:flex;flex-wrap:wrap;gap:16px;justify-content:center;padding:8px}
+.theme{width:170px;min-height:120px;border-radius:24px;border:4px solid #fff;background:rgba(255,255,255,.85);box-shadow:var(--shadow,0 6px 0 rgba(0,0,0,.12));display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;font-size:18px;font-weight:700}
+.theme span{font-size:48px;line-height:1}
+.theme.on{border-color:var(--coral);transform:scale(1.05)}
+.mini-row{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
 body.locked #screen{pointer-events:none}                       /* no taps while a celebration plays */
 
 /* header */

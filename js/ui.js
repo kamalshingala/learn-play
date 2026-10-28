@@ -31,8 +31,8 @@ const UI = {
   bubble(t) { const b = $('#bubble'); if (b) b.textContent = t; },
   mascot(e, ms = 1200) {
     const m = $('#mascot'); if (!m) return;
-    m.textContent = e; clearTimeout(this.mascotT);
-    this.mascotT = setTimeout(() => { m.textContent = '🐻'; }, ms * TIME);
+    m.innerHTML = e; clearTimeout(this.mascotT);
+    this.mascotT = setTimeout(() => { m.innerHTML = Theme.mascotHTML(); }, ms * TIME);
   },
   homeBtn(show) { $('#homeBtn').style.visibility = show ? 'visible' : 'hidden'; },
   stats() { const n = Object.keys(S.badges).length; $('#stats').textContent = `🔥 ${S.streak}  🏅 ${n}`; },

@@ -8,7 +8,7 @@ function freshState() {
   const prog = {};
   CATS.forEach(c => { prog[c.id] = {}; [1, 2, 3].forEach(l => { prog[c.id][l] = { n: 0, sets: 0 }; }); });
   return { v: 3, streak: 0, lastDay: '', missions: 0, stickers: [], badges: {}, prog,
-           opts: { unlockAll: false, trace: true, setSize: 5, lens: [], fams: [] } };
+           opts: { theme: 'meadow', unlockAll: false, trace: true, setSize: 5, lens: [], fams: [] } };
 }
 function load() {
   S = freshState();
@@ -134,11 +134,12 @@ const go = {
       <button class="bigbtn pulse" id="mission">${played ? '▶ Play again' : '▶ Today’s mission'}</button>
       <div class="cats">${CATS.map(c => `<button class="cat" data-c="${c.id}" style="--c:${c.color}"><span class="ci">${c.icon}</span><b>${c.label}</b>
         <span class="stars">${LEVELS.map(l => (sets(c.id, l.n) ? `<span>${l.medal}</span>` : '<span class="off">○</span>')).join('')}</span></button>`).join('')}</div>
-      <button class="mini wide" id="book">🏅 My badges &amp; stickers</button>
+      <div class="mini-row"><button class="mini wide" id="book">🏅 My badges &amp; stickers</button><button class="mini wide" id="themes">🎨 Themes</button></div>
       <button id="gear" aria-label="Grown-ups: press and hold">⚙️</button></div>`);
     onTap($('#mission'), () => { Sound.unlock(); Flow.run(T => mission(T)); });
     $$('.cat').forEach(b => onTap(b, () => go.levels(b.dataset.c)));
     onTap($('#book'), () => go.book());
+    onTap($('#themes'), () => go.themes());
     Q.say('Tap the big red button to play. Or choose sounds, counting, maths or words.');
     let tm = 0; const g = $('#gear');
     g.onpointerdown = () => { tm = setTimeout(() => go.parent(), 1500); };
@@ -157,6 +158,22 @@ const go = {
         <span class="bar"><i style="width:${Math.min(100, p.n / S.opts.setSize * 100)}%"></i></span></button>`;
     }).join('')}</div></div>`);
     $$('.lvl').forEach(b => onTap(b, () => { Sound.unlock(); Flow.run(T => practice(T, cat, +b.dataset.l)); }));
+  },
+
+  themes() {
+    Flow.begin(); UI.homeBtn(true);
+    UI.bubble('Pick a theme'); Q.say('Pick a theme you like.');
+    const draw = () => {
+      UI.show(`<div class="q"><div class="prompt">🎨 Pick a theme</div><div class="themes">${Theme.list().map(t =>
+        `<button class="theme ${t.id === Theme.id ? 'on' : ''}" data-t="${t.id}"><span>${t.icon}</span>${t.name}</button>`).join('')}</div></div>`);
+      $$('.theme').forEach(b => onTap(b, () => {
+        Sound.unlock(); const t = Theme.list().find(x => x.id === b.dataset.t); if (!t) return;
+        Theme.apply(t.id); S.opts.theme = t.id; save(); draw();
+        const on = $('.theme.on'); if (on) celebrate(on, 'small');
+        Sound.speak(t.name);
+      }, 150));
+    };
+    draw();
   },
 
   book() {
@@ -217,11 +234,12 @@ function boot() {
   try { Sound.init(); } catch (e) { console.error(e); }
   try { FX.init(); } catch (e) { console.error(e); }
   UI.init(); syncMute();
+  try { Theme.apply(S.opts.theme); Theme.probe(() => { if (S.opts.theme === 'mine') Theme.apply('mine'); }); } catch (e) { console.error(e); }
   $('#homeBtn').addEventListener('click', () => go.home());
   $('#mute').addEventListener('click', () => { Sound.setMuted(!Sound.muted); syncMute(); });
   window.addEventListener('unhandledrejection', e => { if (e.reason === ABORT) e.preventDefault(); });
   if ('serviceWorker' in navigator && !TEST) navigator.serviceWorker.register('sw.js').catch(() => {});
-  if (TEST) window.__lp = { Q, Flow, UI, Sound, FX, S: () => S, go, GEN, Run, ABORT, mission, practice, playSet, curLevel, sets, save, load };
+  if (TEST) window.__lp = { Q, Flow, UI, Sound, FX, Theme, S: () => S, go, GEN, Run, ABORT, mission, practice, playSet, curLevel, sets, save, load };
   go.home();
 }
 boot();
